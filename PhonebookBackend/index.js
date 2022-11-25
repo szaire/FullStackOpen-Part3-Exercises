@@ -1,10 +1,29 @@
 const express = require("express");
 const app = express();
 
-// date and time package
+// date-and-time module
 const date = require("date-and-time");
 
-app.use(express.json());
+// morgan module [3.7]
+const morgan = require("morgan");
+
+// log new contact [3.8]
+morgan.token("postData", (req) => {
+  if (req.method === "POST") {
+    return JSON.stringify(req.body);
+  }
+  return " ";
+});
+
+app.use(express.json()); // It parses incoming JSON requests and puts the parsed data in req.body
+// app.use(morgan("tiny")); // [3.7]
+
+// [3.8]
+app.use(
+  morgan(
+    ":method :url :status :res[content-length] - :response-time ms :postData"
+  )
+);
 
 let persons = [
   {
@@ -29,6 +48,7 @@ let persons = [
   },
 ];
 
+// HTTP ROUTES
 // GET METHOD
 // root access
 app.get("/", (req, res) => {
@@ -42,6 +62,8 @@ app.get("/api/persons", (req, res) => {
 
 // getting person id [3.3]
 app.get("/api/persons/:id", (req, res) => {
+  console.log(req.params);
+
   const id = Number(req.params.id);
   const selectedPerson = persons.find((person) => {
     return person.id === id;
@@ -62,7 +84,7 @@ app.get("/info", (req, res) => {
   // person list info
   const personQnt = persons.length;
 
-  // date info (using date-and-time node.js package)
+  // date info (using date-and-time module)
   const formatOption = "ddd MMM DD YYYY HH:mm:ss [GMT]Z";
   const dateFormat = date.format(new Date(), formatOption);
 
